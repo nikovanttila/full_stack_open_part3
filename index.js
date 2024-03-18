@@ -26,7 +26,8 @@ let persons = [
 ]
 
 app.use(express.json())
-app.use(morgan('tiny'))
+//app.use(morgan('tiny'))
+app.use(morgan(':method :url :status :res[content-length] - :response-time ms :person'))
 
 app.get('/info', (request, response) => {
     const date = new Date()
@@ -34,10 +35,12 @@ app.get('/info', (request, response) => {
         '<p>Phonebook has info for ' + persons.length + ' people</p>' +
         '<p>' + date.toDateString() + ' ' +  date.toTimeString() + '<p/>'
     )
+    morgan.token('person', req => { return ' ' })
 })
   
 app.get('/api/persons', (request, response) => {
     response.json(persons)
+    morgan.token('person', req => { return ' ' })
 })
 
 app.get('/api/persons/:id', (request, response) => {
@@ -49,6 +52,7 @@ app.get('/api/persons/:id', (request, response) => {
     } else {
       response.status(404).end()
     }
+    morgan.token('person', req => { return ' ' })
   })
 
 app.delete('/api/persons/:id', (request, response) => {
@@ -56,6 +60,7 @@ app.delete('/api/persons/:id', (request, response) => {
     persons = persons.filter(person => person.id !== id)
   
     response.status(204).end()
+    morgan.token('person', req => { return ' ' })
 })
 
 app.post('/api/persons', (request, response) => {
@@ -74,6 +79,7 @@ app.post('/api/persons', (request, response) => {
   persons = persons.concat(person)
 
   response.json(person)
+  morgan.token('person', req => { return JSON.stringify(req.body) })
 })
   
 const PORT = 3001
