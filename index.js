@@ -1,7 +1,9 @@
+require('dotenv').config()
 const express = require('express')
 var morgan = require('morgan')
 const cors = require('cors')
 const app = express()
+const Person = require('./models/person')
 
 let persons = [
   { 
@@ -33,20 +35,25 @@ app.use(morgan(':method :url :status :res[content-length] - :response-time ms :p
 
 app.get('/info', (request, response) => {
     const date = new Date()
-    response.send(
-        '<p>Phonebook has info for ' + persons.length + ' people</p>' +
-        '<p>' + date.toDateString() + ' ' +  date.toTimeString() + '<p/>'
-    )
+    Person.find({}).then(persons => {
+      response.send(
+          '<p>Phonebook has info for ' + persons.length + ' people</p>' +
+          '<p>' + date.toDateString() + ' ' +  date.toTimeString() + '<p/>'
+      )
+    })
     morgan.token('person', req => { return ' ' })
 })
   
 app.get('/api/persons', (request, response) => {
-    response.json(persons)
-    morgan.token('person', req => { return ' ' })
+    Person.find({}).then(persons => {
+      response.json(persons)
+    })
+    morgan.token('person', request => { return ' ' })
 })
 
 app.get('/api/persons/:id', (request, response) => {
-    const id = Number(request.params.id)
+    const id = ObjectId(request.params.id)
+    console.log('id:', id)
     const person = persons.find(person => person.id === id)
 
     if (person) {
@@ -66,22 +73,22 @@ app.delete('/api/persons/:id', (request, response) => {
 })
 
 app.post('/api/persons', (request, response) => {
-  const body = request.body
+    const body = request.body
 
-  personFound = persons.find(person => body.name === person.name)
-  if (!body.name || !body.number) { return response.status(400).json({ error: 'content missing' })}
-  if (personFound) { return response.status(400).json({ error: 'name must be unique' })}
+    personFound = persons.find(person => body.name === person.name)
+    if (!body.name || !body.number) { return response.status(400).json({ error: 'content missing' })}
+    if (personFound) { return response.status(400).json({ error: 'name must be unique' })}
 
-  const person = {
-    name: body.name,
-    number: body.number,
-    id: Math.floor(Math.random() * 10000),
-  }
+    const person = {
+      name: body.name,
+      number: body.number,
+      id: Math.floor(Math.random() * 10000),
+    }
 
-  persons = persons.concat(person)
+    persons = persons.concat(person)
 
-  response.json(person)
-  morgan.token('person', req => { return JSON.stringify(req.body) })
+    response.json(person)
+    morgan.token('person', req => { return JSON.stringify(req.body) })
 })
   
 const PORT = process.env.PORT || 3001
