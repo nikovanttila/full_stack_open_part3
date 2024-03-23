@@ -42,7 +42,7 @@ app.get('/info', (request, response) => {
           '<p>' + date.toDateString() + ' ' +  date.toTimeString() + '<p/>'
       )
     })
-    morgan.token('person', req => { return ' ' })
+    morgan.token('person', request => { return ' ' })
 })
   
 app.get('/api/persons', (request, response) => {
@@ -56,7 +56,6 @@ app.get('/api/persons', (request, response) => {
 app.get('/api/persons/:id', (request, response) => {
     //console.log("get /api/persons/:id")
     const id = ObjectId(request.params.id)
-    console.log('id:', id)
     const person = persons.find(person => person.id === id)
 
     if (person) {
@@ -64,21 +63,23 @@ app.get('/api/persons/:id', (request, response) => {
     } else {
       response.status(404).end()
     }
-    morgan.token('person', req => { return ' ' })
+    morgan.token('person', request => { return ' ' })
   })
 
-app.delete('/api/persons/:id', (request, response) => {
+app.delete('/api/persons/:id', (request, response, next) => {
     //console.log("delete /api/persons/:id")
-    const id = Number(request.params.id)
-    persons = persons.filter(person => person.id !== id)
-  
-    response.status(204).end()
-    morgan.token('person', req => { return ' ' })
+    Person.findByIdAndDelete(request.params.id)
+      .then(result => {
+        response.status(204).end()
+      })
+      .catch(error => next(error))
+    morgan.token('person', request => { return ' ' })
 })
 
 app.post('/api/persons', (request, response) => {
     //console.log("post /api/persons")
     const body = request.body
+    let savedPersonMorgan = null
 
     //personFound = persons.find(person => body.name === person.name)
     //if (!body.name || !body.number) { return response.status(400).json({ error: 'content missing' })}
@@ -95,8 +96,9 @@ app.post('/api/persons', (request, response) => {
 
     person.save().then(savedPerson => {
       response.json(savedPerson)
+      savedPersonMorgan = savedPerson
     })
-    morgan.token('person', req => { return JSON.stringify(req.body) })
+    morgan.token('person', request => { return JSON.stringify(savedPersonMorgan) })
 })
   
 const PORT = process.env.PORT || 3001
