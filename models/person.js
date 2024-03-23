@@ -4,7 +4,7 @@ mongoose.set('strictQuery', false)
 
 const url = process.env.MONGODB_URI
 
-console.log('connecting to mongodb+srv://fullstack:hiddenpassword@cluster0.p4ooyxp.mongodb.net/personApp?retryWrites=true&w=majority&appName=Cluster0')
+console.log('connecting to mongodb+srv://hiddenusername:hiddenpassword@cluster0.p4ooyxp.mongodb.net/personApp?retryWrites=true&w=majority&appName=Cluster0')
 
 mongoose.connect(url)
   .then(result => {

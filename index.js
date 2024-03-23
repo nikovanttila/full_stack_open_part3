@@ -34,6 +34,7 @@ app.use(express.static('dist'))
 app.use(morgan(':method :url :status :res[content-length] - :response-time ms :person'))
 
 app.get('/info', (request, response) => {
+    //console.log("get /info")
     const date = new Date()
     Person.find({}).then(persons => {
       response.send(
@@ -45,6 +46,7 @@ app.get('/info', (request, response) => {
 })
   
 app.get('/api/persons', (request, response) => {
+    //console.log("get /api/persons")
     Person.find({}).then(persons => {
       response.json(persons)
     })
@@ -52,6 +54,7 @@ app.get('/api/persons', (request, response) => {
 })
 
 app.get('/api/persons/:id', (request, response) => {
+    //console.log("get /api/persons/:id")
     const id = ObjectId(request.params.id)
     console.log('id:', id)
     const person = persons.find(person => person.id === id)
@@ -65,6 +68,7 @@ app.get('/api/persons/:id', (request, response) => {
   })
 
 app.delete('/api/persons/:id', (request, response) => {
+    //console.log("delete /api/persons/:id")
     const id = Number(request.params.id)
     persons = persons.filter(person => person.id !== id)
   
@@ -73,21 +77,25 @@ app.delete('/api/persons/:id', (request, response) => {
 })
 
 app.post('/api/persons', (request, response) => {
+    //console.log("post /api/persons")
     const body = request.body
 
-    personFound = persons.find(person => body.name === person.name)
-    if (!body.name || !body.number) { return response.status(400).json({ error: 'content missing' })}
-    if (personFound) { return response.status(400).json({ error: 'name must be unique' })}
+    //personFound = persons.find(person => body.name === person.name)
+    //if (!body.name || !body.number) { return response.status(400).json({ error: 'content missing' })}
+    //if (personFound) { return response.status(400).json({ error: 'name must be unique' })}
 
-    const person = {
-      name: body.name,
-      number: body.number,
-      id: Math.floor(Math.random() * 10000),
+    if (body.name === undefined) {
+      return response.status(400).json({ error: 'content missing' })
     }
 
-    persons = persons.concat(person)
+    const person = new Person ({
+      name: body.name,
+      number: body.number,
+    })
 
-    response.json(person)
+    person.save().then(savedPerson => {
+      response.json(savedPerson)
+    })
     morgan.token('person', req => { return JSON.stringify(req.body) })
 })
   
