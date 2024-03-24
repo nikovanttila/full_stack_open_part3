@@ -75,27 +75,11 @@ app.get('/api/persons/:id', (request, response) => {
     morgan.token('person', request => { return ' ' })
   })
 
-app.delete('/api/persons/:id', (request, response, next) => {
-    Person.findByIdAndDelete(request.params.id)
-      .then(result => {
-        response.status(204).end()
-      })
-      .catch(error => next(error))
-    morgan.token('person', request => { return ' ' })
-})
-
 app.post('/api/persons', (request, response) => {
-    //console.log("post /api/persons")
     const body = request.body
     let savedPersonMorgan = null
 
-    //personFound = persons.find(person => body.name === person.name)
-    //if (!body.name || !body.number) { return response.status(400).json({ error: 'content missing' })}
-    //if (personFound) { return response.status(400).json({ error: 'name must be unique' })}
-
-    if (body.name === undefined) {
-      return response.status(400).json({ error: 'content missing' })
-    }
+    if (!body.name || !body.number) { return response.status(400).json({ error: 'content missing' })}
 
     const person = new Person ({
       name: body.name,
@@ -109,9 +93,36 @@ app.post('/api/persons', (request, response) => {
     morgan.token('person', request => { return JSON.stringify(savedPersonMorgan) })
 })
 
+app.delete('/api/persons/:id', (request, response, next) => {
+    Person.findByIdAndDelete(request.params.id)
+      .then(result => {
+        response.status(204).end()
+      })
+      .catch(error => next(error))
+    morgan.token('person', request => { return ' ' })
+})
+
 const unknownEndpoint = (request, response) => {
     response.status(404).send({ error: 'unknown endpoint' })
 }
+
+app.put('/api/persons/:id', (request, response, next) => {
+    const body = request.body
+    let updatedPersonMorgan = null
+
+    const person = {
+      name: body.name,
+      number: body.number,
+    }
+
+    Person.findByIdAndUpdate(request.params.id, person, { new: true })
+      .then(updatedPerson => {
+        response.json(updatedPerson)
+        updatedPersonMorgan = updatedPerson
+      })
+      .catch(error => next(error))
+    morgan.token('person', request => { return JSON.stringify(updatedPersonMorgan) })
+})
 
 app.use(unknownEndpoint)
 app.use(errorHandler)
